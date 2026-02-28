@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bunny Addition!</title>
+  <style>
+    :root{
+      --bg1:#fff7fb; --bg2:#f3fbff; --card:#ffffffcc;
+      --text:#222; --muted:#6b7280; --good:#16a34a; --bad:#dc2626;
+      --shadow: 0 14px 35px rgba(0,0,0,.12);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:
+        radial-gradient(120% 80% at 50% 85%, rgba(255,214,140,.95) 0%, rgba(255,168,108,.65) 35%, rgba(255,107,107,.3) 60%, transparent 72%),
+        linear-gradient(180deg, #ffd08a 0%, #ff9a66 30%, #ff6b6b 55%, #c24c8a 75%, #4c2a85 100%);
+    }
+    .wrap{ width:min(920px, 96vw); display:grid; grid-template-columns: 1.1fr .9fr; gap:18px; }
+    @media (max-width: 820px){ .wrap{ grid-template-columns:1fr; } }
+    .card{
+      background:var(--card); backdrop-filter: blur(8px);
+      border: 1px solid rgba(0,0,0,.06); border-radius: 18px;
+      box-shadow: var(--shadow); padding: 18px; position:relative; overflow:hidden;
+    }
+    h1{ margin:0 0 6px; font-size: clamp(22px, 3vw, 30px); }
+    .sub{ margin:0 0 14px; color:var(--muted); font-size:14px; line-height:1.35; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .problem{ font-size: clamp(28px, 4.2vw, 44px); font-weight:800; margin:10px 0 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .problem .tiny{ font-size: 14px; color: var(--muted); font-weight:600; margin-left:6px; }
+    input{
+      width: 180px; max-width: 55vw; font-size: 22px; padding: 12px;
+      border-radius: 14px; border:1px solid rgba(0,0,0,.12); outline:none;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+    .problem input{
+      width: 140px; max-width: 60vw; font-size: 22px; padding: 8px 10px;
+    }
+    button{
+      cursor:pointer; border:none; border-radius: 14px; font-weight:800;
+      padding: 12px 14px; font-size:18px; box-shadow: 0 10px 22px rgba(0,0,0,.10);
+      transition: transform .08s ease;
+    }
+    button:active{ transform: translateY(1px); }
+    .btn{ background: linear-gradient(180deg, #ffe6f1, #ffd3e6); }
+    .btn2{ background: linear-gradient(180deg, #e7f7ff, #d6f0ff); }
+
+    /* Make status SUPER visible */
+    .status{
+      margin-top: 12px;
+      font-weight: 900;
+      font-size: 20px;
+      min-height: 32px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    .status.good{ color: var(--good); }
+    .status.bad{ color: var(--bad); }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.7); border:1px solid rgba(0,0,0,.06);
+      font-weight:700;
+    }
+    .footerRow{ margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .settings{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top: 4px; }
+    label{ font-size: 13px; color: var(--muted); font-weight:700; }
+    select{
+      font-size: 14px; padding: 8px 10px; border-radius: 12px;
+      border:1px solid rgba(0,0,0,.12); background: rgba(255,255,255,.85);
+    }
+
+    .bunnyStage{ display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; min-height:420px; }
+    .bunnyWrap{ width:100%; display:flex; align-items:center; justify-content:center; position:relative; min-height:320px; padding-top:10px; }
+    .bunnyImg{
+      width: min(300px, 70vw); height:auto; transform-origin: 50% 80%;
+      transform: scale(var(--bunny-scale, 0.45));
+      filter: drop-shadow(0 18px 30px rgba(0,0,0,.14));
+      transition: transform .25s ease;
+      display:block;
+      position:relative;
+      z-index:2;
+    }
+    .bunnyImg.front{ z-index:5; }
+    .accSvg{
+      position:absolute;
+      width: min(120px, 32vw);
+      height: auto;
+      opacity:0;
+      transform: translate(var(--swoop-start-x, -60vw), var(--swoop-start-y, -40vh)) rotate(-6deg);
+      transition: opacity .2s ease;
+      pointer-events:none;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.18));
+      z-index:3;
+    }
+    .accSvg.on{
+      opacity:1;
+      animation: none;
+    }
+    .acc-carrot{ left: -6%; bottom: 6%; width: min(90px, 22vw); --swoop-start-x: 22vw; --swoop-start-y: 18vh; --swoop-arc-x: 8vw; --swoop-arc-y: 6vh; }
+    .acc-lettuce{ left: -6%; top: 31%; width: min(110px, 26vw); --swoop-start-x: 20vw; --swoop-start-y: -10vh; --swoop-arc-x: 6vw; --swoop-arc-y: 8vh; }
+    .acc-apple{ left: -4%; top: 6%; width: min(90px, 22vw); --swoop-start-x: 24vw; --swoop-start-y: -12vh; --swoop-arc-x: 8vw; --swoop-arc-y: 6vh; }
+    .acc-sunset{
+      left: -10%;
+      top: -8%;
+      width: 120%;
+      height: 120%;
+      object-fit: cover;
+      filter: saturate(1.2) brightness(1.1) contrast(1.08);
+      z-index:0;
+      opacity:0;
+      transform: scale(1.02);
+      transition: opacity .5s ease;
+    }
+    .acc-sunset.on{
+      opacity:1;
+      transform: scale(1);
+      animation: none;
+    }
+    .acc-rainbow{
+      left: 50%;
+      top: -18%;
+      translate: -50% 0;
+      width: min(520px, 120vw);
+      z-index:1;
+      --swoop-start-x: -6vw;
+      --swoop-start-y: -12vh;
+      --swoop-arc-x: 4vw;
+      --swoop-arc-y: 4vh;
+    }
+    .acc-hutch{ right: -6%; bottom: 4%; width: min(150px, 34vw); --swoop-start-x: -22vw; --swoop-start-y: 16vh; --swoop-arc-x: -6vw; --swoop-arc-y: 6vh; }
+    .acc-baby{ right: -2%; bottom: 26%; width: min(100px, 24vw); --swoop-start-x: -20vw; --swoop-start-y: 8vh; --swoop-arc-x: -6vw; --swoop-arc-y: 6vh; }
+    .acc-flowers{ left: -6%; top: 44%; width: min(170px, 40vw); --swoop-start-x: 18vw; --swoop-start-y: 10vh; --swoop-arc-x: 6vw; --swoop-arc-y: 6vh; }
+    .acc-heart{ right: -2%; top: 18%; width: min(90px, 22vw); --swoop-start-x: -18vw; --swoop-start-y: -12vh; --swoop-arc-x: -6vw; --swoop-arc-y: 6vh; }
+
+    /* JS handles smooth swoop motion */
+
+    @keyframes pop {
+      0%{ transform: scale(var(--bunny-scale, 1)); }
+      40%{ transform: scale(calc(var(--bunny-scale, 1) + 0.06)); }
+      100%{ transform: scale(var(--bunny-scale, 1)); }
+    }
+    .pop{ animation: pop .35s ease; }
+    @keyframes dance {
+      0%{ transform: scale(var(--bunny-scale, 1)) rotate(0deg) translateY(0); }
+      20%{ transform: scale(var(--bunny-scale, 1)) rotate(-3deg) translateY(-2px); }
+      40%{ transform: scale(var(--bunny-scale, 1)) rotate(3deg) translateY(-1px); }
+      60%{ transform: scale(var(--bunny-scale, 1)) rotate(-2deg) translateY(-2px); }
+      80%{ transform: scale(var(--bunny-scale, 1)) rotate(2deg) translateY(-1px); }
+      100%{ transform: scale(var(--bunny-scale, 1)) rotate(0deg) translateY(0); }
+    }
+    .dance{
+      animation: dance .7s ease-in-out infinite;
+    }
+
+    .sparkles{ position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .2s ease; }
+    .sparkles.on{ opacity:1; }
+    .spark{ position:absolute; font-size:18px; animation: floaty 1s ease forwards; }
+    @keyframes floaty{
+      0%{ transform: translateY(0) scale(.9); opacity:0; }
+      20%{ opacity:1; }
+      100%{ transform: translateY(-28px) scale(1.15); opacity:0; }
+    }
+
+    .smallNote{ margin:0; color:var(--muted); font-size:13px; text-align:center; max-width:36ch; }
+
+    .confettiFall{
+      position:absolute; inset:0; pointer-events:none; opacity:0;
+      overflow:hidden; z-index:6;
+    }
+    .confettiFall.on{ opacity:1; }
+    .confettiPiece{
+      position:absolute; top:-10%;
+      width:10px; height:14px; border-radius:4px;
+      animation: fall 2.4s linear forwards;
+    }
+    @keyframes fall{
+      0%{ transform: translateY(0) rotate(0deg); opacity:0; }
+      10%{ opacity:1; }
+      100%{ transform: translateY(140%) rotate(220deg); opacity:0; }
+    }
+    .bigCheer{
+      position:absolute; left:50%; bottom: 6%;
+      transform: translate(-50%, 10px);
+      background: rgba(255,255,255,.92);
+      border:1px solid rgba(0,0,0,.12);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 900;
+      white-space: nowrap;
+      opacity:0;
+      z-index:7;
+      transition: opacity .2s ease, transform .2s ease;
+      pointer-events:none;
+    }
+    .bigCheer.on{
+      opacity:1;
+      transform: translate(-50%, 0);
+    }
+    /* JS running indicator removed */
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>🐰 Bunny Addition!</h1>
+      <p class="sub">Answer the addition problem. Every correct answer makes the bunny bigger and even cuter.</p>
+
+      <div class="settings">
+        <div class="row">
+          <label for="level">Level:</label>
+          <select id="level">
+            <option value="0">Easy (0–5)</option>
+            <option value="1" selected>Normal (0–10)</option>
+            <option value="2">Spicy (+0-12, -0-10)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="goal">Goal:</label>
+          <select id="goal">
+            <option value="5">5 correct</option>
+            <option value="10" selected>10 correct</option>
+            <option value="15">15 correct</option>
+            <option value="20">20 correct</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="problem" aria-live="polite">
+        <span id="a">3</span>
+        <span id="op">+</span>
+        <span id="b">4</span>
+        <span>=</span>
+        <input id="answer" type="text" inputmode="numeric" autocomplete="off" aria-label="Answer" />
+      </div>
+
+      <div class="row">
+        <button class="btn" id="checkBtn" type="button">Check ✅</button>
+        <button class="btn2" id="newBtn" type="button" title="New problem">New 🔄</button>
+      </div>
+
+      <div id="status" class="status" aria-live="polite"></div>
+
+      <div class="footerRow">
+        <div class="row">
+          <span class="pill">⭐ Correct: <span id="score">0</span></span>
+          <span class="pill">🎯 Goal: <span id="goalNum">10</span></span>
+          <span class="pill">🔥 Streak: <span id="streak">0</span></span>
+        </div>
+        <button class="btn2" id="resetBtn" type="button">Reset 🧼</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bunnyStage">
+        <div class="bunnyWrap" id="bunnyWrap">
+          <div id="sparkles" class="sparkles"></div>
+          <div id="confettiFall" class="confettiFall"></div>
+          <div id="bigCheer" class="bigCheer">Great job, Amara!</div>
+          <img id="bunnyImg" class="bunnyImg" src="bunny.png" alt="Cute bunny" />
+          <img id="accCarrot" class="accSvg acc-carrot" src="carrot.png" alt="" aria-hidden="true" />
+          <img id="accLettuce" class="accSvg acc-lettuce" src="lettuce.png" alt="" aria-hidden="true" />
+          <img id="accApple" class="accSvg acc-apple" src="apple.png" alt="" aria-hidden="true" />
+          <img id="accSun" class="accSvg acc-sunset" src="sunset.png" alt="" aria-hidden="true" />
+          <img id="accRainbow" class="accSvg acc-rainbow" src="rainbow.png" alt="" aria-hidden="true" />
+          <img id="accHutch" class="accSvg acc-hutch" src="hutch.png" alt="" aria-hidden="true" />
+          <img id="accBaby" class="accSvg acc-baby" src="baby bunny.png" alt="" aria-hidden="true" />
+          <img id="accFlowers" class="accSvg acc-flowers" src="flowers.png" alt="" aria-hidden="true" />
+          <img id="accHeart" class="accSvg acc-heart" src="heart.png" alt="" aria-hidden="true" />
+        </div>
+
+        <p class="smallNote" id="bunnyLine">Your bunny is getting ready...</p>
+        <div class="row">
+          <span class="pill">🐾 Cuteness: <span id="cuteness">0</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const el = (id) => document.getElementById(id);
+
+      const aEl = el("a");
+      const bEl = el("b");
+      const opEl = el("op");
+      const answerEl = el("answer");
+      const statusEl = el("status");
+      const scoreEl = el("score");
+      const streakEl = el("streak");
+      const goalEl = el("goal");
+      const goalNumEl = el("goalNum");
+      const levelEl = el("level");
+      const resetBtn = el("resetBtn");
+      const checkBtn = el("checkBtn");
+      const newBtn = el("newBtn");
+
+      const bunnyWrap = el("bunnyWrap");
+      const bunnyImg = el("bunnyImg");
+      const accCarrot = el("accCarrot");
+      const accLettuce = el("accLettuce");
+      const accApple = el("accApple");
+      const accSun = el("accSun");
+      const accRainbow = el("accRainbow");
+      const accHutch = el("accHutch");
+      const accBaby = el("accBaby");
+      const accFlowers = el("accFlowers");
+      const accHeart = el("accHeart");
+      const bunnyLine = el("bunnyLine");
+      const cutenessEl = el("cuteness");
+      const sparklesBox = el("sparkles");
+      const confettiFall = el("confettiFall");
+      const bigCheer = el("bigCheer");
+
+      // If ANY element is missing, show it loudly:
+      const required = [aEl,bEl,opEl,answerEl,statusEl,scoreEl,streakEl,goalEl,goalNumEl,levelEl,resetBtn,checkBtn,newBtn,
+                        bunnyWrap,bunnyImg,accCarrot,accLettuce,accApple,accSun,accRainbow,accHutch,accBaby,accFlowers,accHeart,
+                        bunnyLine,cutenessEl,sparklesBox,confettiFall,bigCheer];
+      if (required.some(x => !x)) {
+        statusEl.textContent = "Oops — something didn’t load. Open DevTools → Console for the exact error.";
+        statusEl.className = "status bad";
+        console.error("Missing element(s). Check IDs in HTML.");
+        return;
+      }
+
+      let A = 0, B = 0;
+      let op = "+";
+      let score = 0;
+      let streak = 0;
+
+      function maxAddendByLevel(){
+        const lvl = Number(levelEl.value);
+        if (lvl === 0) return 5;
+        if (lvl === 1) return 10;
+        return 12;
+      }
+      function randInt(min, max){
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function sayGood(msg){ statusEl.textContent = msg; statusEl.className = "status good"; }
+      function sayBad(msg){ statusEl.textContent = msg; statusEl.className = "status bad"; }
+
+      function updateHUD(){
+        scoreEl.textContent = String(score);
+        streakEl.textContent = String(streak);
+        goalNumEl.textContent = goalEl.value;
+        cutenessEl.textContent = String(score);
+      }
+
+      function celebrateSparkles(){
+        sparklesBox.innerHTML = "";
+        const icons = ["✨","⭐","💖","🌟","🐾"];
+        for (let i=0;i<10;i++){
+          const s = document.createElement("div");
+          s.className = "spark";
+          s.textContent = icons[randInt(0, icons.length-1)];
+          s.style.left = randInt(10, 90) + "%";
+          s.style.top = randInt(30, 75) + "%";
+          s.style.animationDelay = (Math.random() * 0.15) + "s";
+          sparklesBox.appendChild(s);
+        }
+        sparklesBox.classList.add("on");
+        setTimeout(() => sparklesBox.classList.remove("on"), 650);
+      }
+
+      function celebrateBig(){
+        confettiFall.innerHTML = "";
+        const colors = ["#ff6b6b","#ffd166","#6ee7b7","#60a5fa","#f472b6","#facc15"];
+        for (let i=0;i<24;i++){
+          const c = document.createElement("div");
+          c.className = "confettiPiece";
+          c.style.left = randInt(5, 95) + "%";
+          c.style.background = colors[randInt(0, colors.length-1)];
+          c.style.animationDelay = (Math.random() * 0.2) + "s";
+          c.style.transform = `rotate(${randInt(0,360)}deg)`;
+          confettiFall.appendChild(c);
+        }
+        confettiFall.classList.add("on");
+        bigCheer.classList.add("on");
+        setTimeout(() => {
+          confettiFall.classList.remove("on");
+          confettiFall.innerHTML = "";
+        }, 2400);
+      }
+
+      function bunnyGetsCutier(){
+        const scale = Math.min(0.45 + score * 0.09, 1.25);
+        bunnyWrap.style.setProperty("--bunny-scale", String(scale));
+        bunnyImg.style.setProperty("--bunny-scale", String(scale));
+        bunnyImg.classList.toggle("dance", score >= 10);
+        bunnyImg.classList.toggle("front", score >= 10);
+        showItem(accCarrot, score >= 1);
+        showItem(accLettuce, score >= 2);
+        showItem(accApple, score >= 3);
+        showItem(accSun, score >= 4, { noSwoop: true });
+        showItem(accRainbow, score >= 5);
+        showItem(accHutch, score >= 6);
+        showItem(accFlowers, score >= 7);
+        showItem(accBaby, score >= 8);
+        showItem(accHeart, score >= 9);
+        // Bunny dances at 10+ instead of a tiara
+
+        const lines = [
+          "Bunny is smiling at you!",
+          "Bunny says: hop hop hooray!",
+          "Bunny cheeks are getting rosier!",
+          "Bunny is EXTRA fluffy now.",
+          "Bunny is doing a tiny happy dance."
+        ];
+        bunnyLine.textContent = lines[Math.min(score, lines.length-1)];
+      }
+
+      function popBunny(){
+        bunnyImg.classList.remove("pop");
+        void bunnyImg.offsetWidth;
+        bunnyImg.classList.add("pop");
+      }
+
+      function parseOffset(raw, axis){
+        if (!raw) return 0;
+        const v = Number.parseFloat(raw);
+        if (!Number.isFinite(v)) return 0;
+        if (raw.includes("vw")) return v * window.innerWidth / 100;
+        if (raw.includes("vh")) return v * window.innerHeight / 100;
+        return v;
+      }
+
+      function swoopIn(el, durationMs = 2400){
+        const styles = getComputedStyle(el);
+        const startX = parseOffset(styles.getPropertyValue("--swoop-start-x"), "x");
+        const startY = parseOffset(styles.getPropertyValue("--swoop-start-y"), "y");
+        const arcX = parseOffset(styles.getPropertyValue("--swoop-arc-x"), "x");
+        const arcY = parseOffset(styles.getPropertyValue("--swoop-arc-y"), "y");
+        const startRot = -6;
+        const start = performance.now();
+
+        function easeOutCubic(t){
+          return 1 - Math.pow(1 - t, 3);
+        }
+
+        function step(now){
+          const elapsed = now - start;
+          const t = Math.min(1, elapsed / durationMs);
+          const e = easeOutCubic(t);
+          const inv = 1 - e;
+          const x = (inv * inv) * startX + 2 * inv * e * arcX + (e * e) * 0;
+          const y = (inv * inv) * startY + 2 * inv * e * arcY + (e * e) * 0;
+          const rot = startRot * (1 - e);
+          el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+          if (t < 1){
+            requestAnimationFrame(step);
+          } else {
+            el.style.transform = "translate(0, 0) rotate(0deg)";
+          }
+        }
+
+        el.style.transform = `translate(${startX}px, ${startY}px) rotate(${startRot}deg)`;
+        requestAnimationFrame(step);
+      }
+
+      function showItem(el, shouldShow, opts = {}){
+        if (!shouldShow){
+          el.classList.remove("on");
+          el.dataset.shown = "false";
+          el.style.transform = "";
+          return;
+        }
+        el.classList.add("on");
+        if (el.dataset.shown === "true") return;
+        el.dataset.shown = "true";
+        if (!opts.noSwoop){
+          swoopIn(el);
+        }
+      }
+
+      function newProblem(){
+        const lvl = Number(levelEl.value);
+        const max = maxAddendByLevel();
+        if (lvl === 2 && Math.random() < 0.4){
+          op = "-";
+          A = randInt(0, 10);
+          B = randInt(0, A);
+        } else {
+          op = "+";
+          A = randInt(0, max);
+          B = randInt(0, max);
+        }
+        aEl.textContent = A;
+        bEl.textContent = B;
+        opEl.textContent = op;
+        statusEl.textContent = "";
+        statusEl.className = "status";
+        answerEl.value = "";
+        answerEl.focus();
+        bunnyLine.textContent = `How much is ${A} ${op} ${B}?`;
+      }
+
+      function checkAnswer(){
+        const raw = answerEl.value.trim();
+        if (raw === ""){
+          sayBad("Type an answer first 🙂");
+          return;
+        }
+        const user = Number(raw);
+        if (!Number.isFinite(user)){
+          sayBad("Try a number 🙂");
+          return;
+        }
+
+        const correct = (op === "+") ? (A + B) : (A - B);
+        if (user === correct){
+          score += 1;
+          streak += 1;
+          updateHUD();
+          bunnyGetsCutier();
+          popBunny();
+          celebrateSparkles();
+          if (score === 10){
+            celebrateBig();
+          }
+
+          const goal = Number(goalEl.value);
+          if (score >= goal){
+            sayGood("YES! 🎉 You reached the goal! The bunny is officially SUPER CUTE!");
+          } else {
+            const cheers = ["Correct! 🐰", "Yay! ⭐", "Nice! ✨", "You got it! 💖", "Awesome! 🌟"];
+            sayGood(cheers[randInt(0, cheers.length-1)] + "  Bunny grew!");
+          }
+          setTimeout(newProblem, 650);
+        } else {
+          streak = 0;
+          if (score > 0){
+            score -= 1;
+          }
+          updateHUD();
+          bunnyGetsCutier();
+          sayBad(`Oops! ${A} ${op} ${B} = ${correct}. Bunny ate a snack.`);
+          setTimeout(newProblem, 950);
+        }
+      }
+
+      function resetGame(){
+        score = 0;
+        streak = 0;
+        bunnyWrap.style.setProperty("--bunny-scale", "0.45");
+        bunnyImg.style.setProperty("--bunny-scale", "0.45");
+        bunnyImg.classList.remove("dance");
+        bunnyImg.classList.remove("front");
+        const items = [accCarrot, accLettuce, accApple, accSun, accRainbow, accHutch, accFlowers, accBaby, accHeart];
+        items.forEach((item) => {
+          item.classList.remove("on");
+          item.dataset.shown = "false";
+          item.style.transform = "";
+        });
+        confettiFall.classList.remove("on");
+        bigCheer.classList.remove("on");
+        confettiFall.innerHTML = "";
+        bunnyLine.textContent = "Your bunny is getting ready...";
+        updateHUD();
+        newProblem();
+      }
+
+      checkBtn.addEventListener("click", checkAnswer);
+      newBtn.addEventListener("click", newProblem);
+      resetBtn.addEventListener("click", resetGame);
+      answerEl.addEventListener("keydown", (e) => { if (e.key === "Enter") checkAnswer(); });
+      levelEl.addEventListener("change", () => { streak = 0; updateHUD(); newProblem(); });
+      goalEl.addEventListener("change", () => { updateHUD(); bunnyGetsCutier(); });
+
+      updateHUD();
+      newProblem();
+    });
+  </script>
+</body>
+</html>

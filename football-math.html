@@ -1,0 +1,1565 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Math Football</title>
+  <style>
+    :root{
+      --bg1:#0b3d2e;
+      --bg2:#0f5a42;
+      --card:#ffffffd8;
+      --text:#102018;
+      --muted:#465a52;
+      --good:#15803d;
+      --bad:#b91c1c;
+      --shadow: 0 16px 38px rgba(0,0,0,.22);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(255,255,255,.08), transparent),
+        radial-gradient(900px 600px at 80% 20%, rgba(255,255,255,.06), transparent),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      padding: 18px;
+    }
+
+    .wrap{
+      width:min(980px, 98vw);
+      display:grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 16px;
+      align-items:stretch;
+    }
+    @media (max-width: 900px){
+      .wrap{ grid-template-columns:1fr; }
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      overflow:hidden;
+      position:relative;
+      backdrop-filter: blur(8px);
+    }
+
+    h1{
+      margin:0 0 6px;
+      font-size: clamp(22px, 3.2vw, 30px);
+      letter-spacing:.2px;
+    }
+    .scoreboard{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin: 6px 0 10px;
+      font-weight: 1000;
+    }
+    .scoreboard.prominent{
+      margin: 0 0 6px;
+    }
+    .stadiumBoard{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #102a21, #0b201a);
+      border: 2px solid rgba(255,255,255,.28);
+      box-shadow: 0 14px 28px rgba(0,0,0,.28);
+      color:#f7fff9;
+      min-width: min(420px, 92vw);
+    }
+    .teamBox{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      font-weight: 1000;
+      letter-spacing:.3px;
+    }
+    .teamBox small{
+      font-weight: 800;
+      color: #cfe7dc;
+    }
+    .scoreNum{
+      font-size: 20px;
+      background: rgba(0,0,0,.35);
+      border-radius: 8px;
+      padding: 4px 8px;
+      min-width: 2ch;
+      text-align:center;
+    }
+    .midBoard{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing:.6px;
+    }
+    .midLabel{
+      font-size: 11px;
+      color:#cfe7dc;
+    }
+    .midValue{
+      font-size: 15px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.22);
+      min-width: 120px;
+      text-align:center;
+    }
+    .timerBig{
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.8);
+      border: 1px solid rgba(0,0,0,.12);
+      font-weight: 900;
+      box-shadow: 0 12px 24px rgba(0,0,0,.12);
+      width: fit-content;
+      margin: 4px 0 10px;
+    }
+    .timerLabel{
+      font-size: 12px;
+      letter-spacing:.6px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .timerValue{
+      font-size: 28px;
+      color: #0a1b12;
+      min-width: 2ch;
+      text-align:right;
+    }
+    .timerUnit{
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .sub{
+      margin:0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height:1.35;
+    }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    label{
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+    select{
+      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.14);
+      background: rgba(255,255,255,.85);
+      outline:none;
+    }
+
+    .problem{
+      font-size: clamp(30px, 4.6vw, 44px);
+      font-weight: 900;
+      margin: 10px 0 12px;
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+    }
+    .problem .tiny{
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    input{
+      width: 200px;
+      max-width: 65vw;
+      font-size: 22px;
+      padding: 12px;
+      border-radius: 14px;
+      border:1px solid rgba(0,0,0,.16);
+      outline:none;
+      box-shadow: 0 10px 22px rgba(0,0,0,.10);
+    }
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius: 14px;
+      font-weight: 900;
+      padding: 12px 14px;
+      font-size: 18px;
+      box-shadow: 0 12px 24px rgba(0,0,0,.12);
+      transition: transform .08s ease, filter .15s ease;
+    }
+    button:active{ transform: translateY(1px); }
+    .btn{ background: linear-gradient(180deg, #ffe8a3, #ffd36d); }
+    .btn2{ background: linear-gradient(180deg, #e7f7ff, #d6f0ff); }
+
+    .status{
+      margin-top: 10px;
+      font-weight: 900;
+      font-size: 18px;
+      min-height: 28px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    .status.good{ color: var(--good); }
+    .status.bad{ color: var(--bad); }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      border:1px solid rgba(0,0,0,.06);
+      font-weight: 900;
+      color:#0a1b12;
+    }
+
+    .footerRow{
+      margin-top: 10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    /* Field */
+    .fieldWrap{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .fieldHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      padding-bottom: 6px;
+    }
+    .hudRight{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:6px;
+      min-width: 220px;
+    }
+    .possessionBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 1000;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      border: 1px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.9);
+      color:#0a1b12;
+      box-shadow: 0 10px 22px rgba(0,0,0,.12);
+    }
+    .possessionBadge.offense{
+      background: linear-gradient(180deg, #dcfce7, #bbf7d0);
+      color:#14532d;
+      border-color: rgba(20,83,45,.2);
+    }
+    .possessionBadge.defense{
+      background: linear-gradient(180deg, #fee2e2, #fecaca);
+      color:#7f1d1d;
+      border-color: rgba(127,29,29,.2);
+    }
+    .downBanner{
+      font-weight: 1000;
+      font-size: clamp(16px, 2.2vw, 24px);
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      color: #f6fff9;
+      text-shadow: 0 10px 22px rgba(0,0,0,.35);
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.2);
+    }
+    .big{
+      font-weight: 1000;
+      font-size: 18px;
+      color:#0a1b12;
+    }
+    .small{
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .field{
+      position:relative;
+      width: 100%;
+      height: 420px;
+      border-radius: 18px;
+      overflow:hidden;
+      border: 2px solid rgba(255,255,255,.25);
+      box-shadow: 0 16px 38px rgba(0,0,0,.22);
+      background:
+        repeating-linear-gradient(
+          to right,
+          rgba(255,255,255,.08) 0px,
+          rgba(255,255,255,.08) 18px,
+          rgba(0,0,0,0) 18px,
+          rgba(0,0,0,0) 36px
+        ),
+        linear-gradient(180deg, #0c6b46, #0a5639);
+    }
+    .midLogo{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform: translate(-50%, -50%);
+      width: min(260px, 40vw);
+      height: auto;
+      opacity: 0.18;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,.25));
+      pointer-events:none;
+      z-index: 1;
+    }
+
+    .endzone{
+      position:absolute;
+      top:0; bottom:0;
+      width: 12%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1000;
+      letter-spacing: 2px;
+      font-size: 14px;
+      color: rgba(255,255,255,.9);
+      text-shadow: 0 6px 16px rgba(0,0,0,.35);
+      flex-direction: column;
+      gap: 8px;
+    }
+    .endzone.left{
+      left:0;
+      background: linear-gradient(180deg, #0b1f3a, #0a172b);
+      border-right: 6px solid #ffffff;
+    }
+    .endzone.right{
+      right:0;
+      background: linear-gradient(180deg, #7b0b1a, #5a0a14);
+      border-left: 6px solid #ffffff;
+    }
+    .endzoneLogo{
+      width: 70%;
+      height: auto;
+      max-height: 70%;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
+      opacity: 0.9;
+    }
+
+    .yardLine{
+      position:absolute;
+      top:0; bottom:0;
+      width: 2px;
+      background: rgba(255,255,255,.25);
+    }
+    .yardLabel{
+      position:absolute;
+      bottom: 10px;
+      transform: translateX(-50%);
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(255,255,255,.75);
+      text-shadow: 0 6px 16px rgba(0,0,0,.35);
+      user-select:none;
+    }
+
+    .player{
+      position:absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 28px;
+      background: rgba(255,255,255,.92);
+      border: 2px solid rgba(0,0,0,.10);
+      box-shadow: 0 14px 28px rgba(0,0,0,.22);
+      transition: left .35s ease, transform .2s ease;
+      user-select:none;
+    }
+    .player.pop{ transform: translate(-50%, -50%) scale(1.08); }
+    .celebration{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      opacity:0;
+      transition: opacity .2s ease;
+      z-index: 4;
+    }
+    .celebration.on{ opacity:1; }
+    .td-dancer{
+      width: min(180px, 40vw);
+      height: auto;
+      animation: dance 1.1s ease-in-out infinite;
+      filter: drop-shadow(0 12px 24px rgba(0,0,0,.35));
+    }
+    .fg-shot{
+      width: min(280px, 54vw);
+      height: auto;
+      animation: kick 1.2s ease-in-out infinite;
+      filter: drop-shadow(0 12px 24px rgba(0,0,0,.35));
+    }
+    @keyframes dance{
+      0%{ transform: translateY(0) rotate(-2deg); }
+      25%{ transform: translateY(-6px) rotate(6deg); }
+      50%{ transform: translateY(0) rotate(-6deg); }
+      75%{ transform: translateY(-6px) rotate(4deg); }
+      100%{ transform: translateY(0) rotate(-2deg); }
+    }
+    @keyframes kick{
+      0%{ transform: translateY(6px) scale(0.98); }
+      50%{ transform: translateY(-10px) scale(1.02); }
+      100%{ transform: translateY(6px) scale(0.98); }
+    }
+    .tag{
+      position:absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.65);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space:nowrap;
+      opacity:0;
+      transition: opacity .15s ease, transform .15s ease;
+    }
+    .tag.on{
+      opacity:1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    .confetti{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity:0;
+      transition: opacity .2s ease;
+    }
+    .confetti.on{ opacity:1; }
+    .conf{
+      position:absolute;
+      font-size: 18px;
+      animation: floaty 1s ease forwards;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,.18));
+    }
+    @keyframes floaty{
+      0%{ transform: translateY(0) scale(.9); opacity:0; }
+      20%{ opacity:1; }
+      100%{ transform: translateY(-28px) scale(1.15); opacity:0; }
+    }
+
+    .note{
+      margin:0;
+      text-align:center;
+      color: rgba(255,255,255,.9);
+      font-weight: 900;
+      font-size: 13px;
+      text-shadow: 0 8px 18px rgba(0,0,0,.35);
+    }
+    .finalOverlay{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(6, 12, 10, 0.6);
+      backdrop-filter: blur(4px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease;
+      z-index: 50;
+      padding: 18px;
+    }
+    .finalOverlay.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .finalCard{
+      background: rgba(255,255,255,.95);
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 18px;
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+      padding: 18px;
+      text-align:center;
+      min-width: min(420px, 92vw);
+    }
+    .finalTitle{
+      font-weight: 1000;
+      font-size: clamp(22px, 3vw, 30px);
+      margin: 0 0 8px;
+    }
+    .finalScore{
+      font-weight: 1000;
+      font-size: clamp(20px, 2.6vw, 26px);
+      color:#0a1b12;
+      margin: 0 0 10px;
+    }
+    .finalSub{
+      color: var(--muted);
+      margin: 0;
+      font-weight: 800;
+    }
+    .finalBtn{
+      margin-top: 10px;
+      background: linear-gradient(180deg, #ffe8a3, #ffd36d);
+    }
+    .choiceOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(10,20,16,.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease;
+      z-index: 10;
+    }
+    .choiceOverlay.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .choiceCard{
+      background: rgba(255,255,255,.96);
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 18px;
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+      padding: 18px;
+      min-width: min(360px, 90vw);
+      text-align:center;
+    }
+    .choiceTitle{
+      font-weight: 1000;
+      font-size: 20px;
+      margin: 0 0 6px;
+    }
+    .choiceSub{
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .choiceRow{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Controls / Questions -->
+    <div class="card">
+      <h1>🏈 Math Football</h1>
+      <div class="timerBig" aria-live="polite">
+        <span class="timerLabel">Play Clock</span>
+        <span class="timerValue" id="timer">30</span>
+        <span class="timerUnit">s</span>
+      </div>
+      <p class="sub">Offense uses multiplication to drive down the field. Defense uses division to stop the opponent. Wrong answers = <b>SACK!</b> and you lose yards.</p>
+      <div class="row" style="margin-bottom:6px;">
+        <div class="row">
+          <label for="level">Difficulty:</label>
+          <select id="level">
+            <option value="0">Basic (0–6)</option>
+            <option value="1" selected>Tough (0–12)</option>
+            <option value="2">Challenge (0–20)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="loss">Sack:</label>
+          <select id="loss">
+            <option value="5">-5 yards</option>
+            <option value="10" selected>-10 yards</option>
+            <option value="15">-15 yards</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="problem" aria-live="polite">
+        <span id="a">7</span>
+        <span id="op">×</span>
+        <span id="b">8</span>
+        <span>=</span>
+        <input id="answer" type="text" inputmode="numeric" autocomplete="off" aria-label="Answer" />
+      </div>
+
+      <div class="row">
+        <button class="btn" id="checkBtn" type="button">Snap &amp; Answer ✅</button>
+        <button class="btn2" id="puntBtn" type="button">Punt 🦶</button>
+        <button class="btn2" id="fgBtn" type="button">Field Goal</button>
+        <button class="btn2" id="goBtn" type="button">Go For It</button>
+      </div>
+
+      <div id="status" class="status" aria-live="polite"></div>
+
+      <div class="footerRow">
+        <div class="row">
+          <span class="pill">📍 Ball on: <span id="ballOn">25</span></span>
+          <span class="pill">✅ Correct: <span id="correct">0</span></span>
+          <span class="pill">🔥 Streak: <span id="streak">0</span></span>
+        </div>
+        <div class="row">
+          <button class="btn2" id="resetBtn" type="button">New Game 🧼</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Field -->
+    <div class="fieldWrap">
+      <div class="fieldHeader">
+        <div>
+          <div class="big" id="driveTitle">Drive to the End Zone!</div>
+          <div class="small" id="driveSub">Touchdown at the right end zone (100 yards).</div>
+        </div>
+        <div class="hudRight">
+          <div class="possessionBadge offense" id="possessionBadge">Offense</div>
+          <div class="scoreboard prominent stadiumBoard" aria-label="Scoreboard">
+            <div class="teamBox">
+              <small>You</small>
+              <span class="scoreNum" id="userScore">0</span>
+            </div>
+            <div class="midBoard">
+              <div class="midLabel">Quarter</div>
+              <div class="midValue" id="quarterNum">1</div>
+              <div class="midLabel">Down &amp; Distance</div>
+              <div class="midValue" id="downBanner">1st and 10</div>
+            </div>
+            <div class="teamBox">
+              <small>Opp</small>
+              <span class="scoreNum" id="oppScore">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" id="field">
+        <div class="endzone left">
+          <img class="endzoneLogo" src="patriots-logo.png" alt="New England Patriots logo" />
+        </div>
+        <div class="endzone right">
+          <img class="endzoneLogo" src="patriots-logo.png" alt="New England Patriots logo" />
+        </div>
+
+        <img class="midLogo" src="patriots-logo.png" alt="New England Patriots logo at midfield" />
+
+        <!-- yard lines + labels inserted by JS -->
+
+        <div class="confetti" id="confetti"></div>
+        <div class="celebration" id="tdCelebration" aria-hidden="true">
+          <svg class="td-dancer" viewBox="0 0 200 200" role="img" aria-label="Celebration">
+            <circle cx="100" cy="40" r="20" fill="#f9d7b5" stroke="rgba(0,0,0,.2)" stroke-width="3"/>
+            <path d="M70 42 C 85 20, 115 20, 130 42" fill="#1f3b67" stroke="rgba(0,0,0,.2)" stroke-width="3"/>
+            <rect x="70" y="60" width="60" height="60" rx="12" fill="#0b3d2e" stroke="rgba(0,0,0,.2)" stroke-width="3"/>
+            <text x="100" y="88" text-anchor="middle" font-size="12" font-weight="900" fill="#ffffff">YARDLEY</text>
+            <text x="100" y="112" text-anchor="middle" font-size="26" font-weight="900" fill="#ffffff">12</text>
+            <path d="M70 72 L30 50" stroke="#0b3d2e" stroke-width="10" stroke-linecap="round"/>
+            <path d="M130 72 L170 50" stroke="#0b3d2e" stroke-width="10" stroke-linecap="round"/>
+            <path d="M90 120 L60 170" stroke="#0b3d2e" stroke-width="10" stroke-linecap="round"/>
+            <path d="M110 120 L150 170" stroke="#0b3d2e" stroke-width="10" stroke-linecap="round"/>
+            <ellipse cx="160" cy="70" rx="18" ry="12" fill="#8b5a2b" stroke="rgba(0,0,0,.25)" stroke-width="3"/>
+            <path d="M154 66 L170 58" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="celebration" id="fgCelebration" aria-hidden="true">
+          <svg class="fg-shot" viewBox="0 0 320 220" role="img" aria-label="Field goal">
+            <!-- Block-letter Y uprights -->
+            <rect x="156" y="40" width="8" height="150" fill="#f2d24b" stroke="rgba(0,0,0,.2)" stroke-width="3"/>
+            <rect x="86" y="48" width="148" height="10" fill="#f2d24b" stroke="rgba(0,0,0,.2)" stroke-width="3"/>
+            <rect x="86" y="18" width="8" height="40" fill="#f2d24b" stroke="rgba(0,0,0,.2)" stroke-width="3"/>
+            <rect x="226" y="18" width="8" height="40" fill="#f2d24b" stroke="rgba(0,0,0,.2)" stroke-width="3"/>
+
+            <!-- Animated ball through uprights -->
+            <g>
+              <ellipse cx="160" cy="196" rx="22" ry="15" fill="#8b5a2b" stroke="rgba(0,0,0,.3)" stroke-width="3"/>
+              <path d="M150 192 L170 186" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+              <animateMotion dur="2.6s" repeatCount="indefinite" path="M160 196 C 160 160, 160 120, 160 58" />
+            </g>
+          </svg>
+        </div>
+
+        <div class="player" id="player" style="left: 25%;">
+          🏈
+          <div class="tag" id="tag">Ready!</div>
+        </div>
+      </div>
+
+      <p class="note">Tip: Press <b>Enter</b> after typing your answer.</p>
+    </div>
+  </div>
+  <div id="finalOverlay" class="finalOverlay" aria-hidden="true">
+    <div class="finalCard" role="dialog" aria-live="polite" aria-label="Final score">
+      <div class="finalTitle" id="finalTitle">Game Over</div>
+      <div class="finalScore" id="finalScore">You 0 - 0 Opponent</div>
+      <p class="finalSub" id="finalSub">Thanks for playing!</p>
+      <button class="finalBtn" id="playAgainBtn" type="button">Play Again</button>
+    </div>
+  </div>
+  <div id="choiceOverlay" class="choiceOverlay" aria-hidden="true">
+    <div class="choiceCard" role="dialog" aria-live="polite" aria-label="Fourth down choice">
+      <div class="choiceTitle">4th Down Decision</div>
+      <p class="choiceSub" id="choiceSub">Choose your play.</p>
+      <p class="choiceSub" id="choiceMeta">Ball on: 25 — To go: 10</p>
+      <div class="choiceRow">
+        <button class="btn2" id="choiceGo" type="button">Go For It</button>
+        <button class="btn2" id="choiceFg" type="button">Field Goal</button>
+        <button class="btn2" id="choicePunt" type="button">Punt</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const el = (id) => document.getElementById(id);
+
+      const aEl = el("a");
+      const bEl = el("b");
+      const opEl = el("op");
+      const answerEl = el("answer");
+      const checkBtn = el("checkBtn");
+      const puntBtn = el("puntBtn");
+      const fgBtn = el("fgBtn");
+      const goBtn = el("goBtn");
+      const resetBtn = el("resetBtn");
+      const statusEl = el("status");
+
+      const levelEl = el("level");
+      const lossEl = el("loss");
+
+      const userScoreEl = el("userScore");
+      const oppScoreEl = el("oppScore");
+
+      const ballOnEl = el("ballOn");
+      const correctEl = el("correct");
+      const streakEl = el("streak");
+      const downBannerEl = el("downBanner");
+      const timerEl = el("timer");
+      const quarterEl = el("quarterNum");
+      const possessionBadgeEl = el("possessionBadge");
+
+      const playerEl = el("player");
+      const tagEl = el("tag");
+      const fieldEl = el("field");
+      const confettiEl = el("confetti");
+      const tdCelebrationEl = el("tdCelebration");
+      const fgCelebrationEl = el("fgCelebration");
+      const choiceOverlay = el("choiceOverlay");
+      const choiceSub = el("choiceSub");
+      const choiceMeta = el("choiceMeta");
+      const choiceGo = el("choiceGo");
+      const choiceFg = el("choiceFg");
+      const choicePunt = el("choicePunt");
+      const finalOverlay = el("finalOverlay");
+      const finalTitle = el("finalTitle");
+      const finalScore = el("finalScore");
+      const finalSub = el("finalSub");
+      const playAgainBtn = el("playAgainBtn");
+
+      const driveTitle = el("driveTitle");
+      const driveSub = el("driveSub");
+
+      // Game state
+      let A = 0, B = 0;
+      let currentOp = "mul"; // "mul" | "div"
+      let yards = 25;          // 0..100
+      let correct = 0;
+      let streak = 0;
+      let down = 1;            // 1..4
+      let lineToGain = 0;      // yards needed for first down
+      let possession = "user"; // "user" or "opp"
+      let direction = 1;       // 1 = to right end zone, -1 = to left end zone
+      let playMode = "normal"; // "normal" | "fg_user" | "fg_opp"
+      let goForItActive = false;
+      let userScore = 0;
+      let oppScore = 0;
+      let possessionCount = 1; // 1..12
+      let quarter = 1;         // 1..4
+      let gameOver = false;
+      let overtime = false;
+      let paused = false;
+      let showDownBanner = true;
+      let timeLeft = 30;
+      let timerId = null;
+
+      updateLineToGain();
+
+      function maxFactorByLevel(){
+        const lvl = Number(levelEl.value);
+        if (lvl === 0) return 6;
+        if (lvl === 1) return 12;
+        return 20;
+      }
+      function randInt(min, max){
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function sayGood(msg){
+        statusEl.textContent = msg;
+        statusEl.className = "status good";
+      }
+      function sayBad(msg){
+        statusEl.textContent = msg;
+        statusEl.className = "status bad";
+      }
+
+      function setTag(text){
+        tagEl.textContent = text;
+        tagEl.classList.add("on");
+        setTimeout(() => tagEl.classList.remove("on"), 650);
+      }
+
+      function popPlayer(){
+        playerEl.classList.remove("pop");
+        void playerEl.offsetWidth;
+        playerEl.classList.add("pop");
+        setTimeout(() => playerEl.classList.remove("pop"), 220);
+      }
+
+      function setPlayerPosition(){
+        // Keep player away from the very edges a bit for aesthetics
+        const pct = 12 + (yards / 100) * 76; // from 12% to 88%
+        playerEl.style.left = pct + "%";
+        const shownLine = yards <= 50 ? yards : 100 - yards;
+        ballOnEl.textContent = String(shownLine);
+      }
+
+      function celebrate(){
+        confettiEl.innerHTML = "";
+        const icons = ["✨","⭐","🏈","🎉","🔥"];
+        for (let i=0;i<14;i++){
+          const c = document.createElement("div");
+          c.className = "conf";
+          c.textContent = icons[randInt(0, icons.length-1)];
+          c.style.left = randInt(15, 85) + "%";
+          c.style.top = randInt(25, 75) + "%";
+          c.style.animationDelay = (Math.random() * 0.2) + "s";
+          confettiEl.appendChild(c);
+        }
+        confettiEl.classList.add("on");
+        setTimeout(() => confettiEl.classList.remove("on"), 700);
+      }
+
+      function showCelebration(el, duration = 1200){
+        el.classList.add("on");
+        el.setAttribute("aria-hidden", "false");
+        setTimeout(() => {
+          el.classList.remove("on");
+          el.setAttribute("aria-hidden", "true");
+        }, duration);
+      }
+
+      function showFourthDownChoice(){
+        stopTimer();
+        paused = true;
+        const canKickFg = canAttemptFieldGoal();
+        const shownLine = yards <= 50 ? yards : 100 - yards;
+        const toGo = direction === 1 ? Math.max(0, lineToGain - yards) : Math.max(0, yards - lineToGain);
+        const goalLineReached = direction === 1 ? (lineToGain >= 100 && yards < 100) : (lineToGain <= 0 && yards > 0);
+        const toGoText = goalLineReached ? "Goal" : String(toGo);
+        choiceFg.style.display = canKickFg ? "inline-flex" : "none";
+        choiceSub.textContent = canKickFg
+          ? "Punt, kick a field goal, or go for it."
+          : "Punt or go for it.";
+        choiceMeta.textContent = `Ball on: ${shownLine} — To go: ${toGoText}`;
+        choiceOverlay.classList.add("show");
+        choiceOverlay.setAttribute("aria-hidden", "false");
+      }
+
+      function hideFourthDownChoice(){
+        choiceOverlay.classList.remove("show");
+        choiceOverlay.setAttribute("aria-hidden", "true");
+      }
+
+      function updateHUD(){
+        correctEl.textContent = String(correct);
+        streakEl.textContent = String(streak);
+        timerEl.textContent = String(timeLeft);
+        quarterEl.textContent = overtime ? "OT" : String(quarter);
+        const toGo = direction === 1 ? Math.max(0, lineToGain - yards) : Math.max(0, yards - lineToGain);
+        const ordinal = down === 1 ? "1st" : down === 2 ? "2nd" : down === 3 ? "3rd" : down === 4 ? "4th" : "5th";
+        let andText = String(toGo);
+        const goalLineReached = direction === 1 ? (lineToGain >= 100 && yards < 100) : (lineToGain <= 0 && yards > 0);
+        if (goalLineReached){
+          andText = "Goal";
+        } else if (toGo <= 1){
+          andText = "Inches";
+        }
+        const shownLine = yards <= 50 ? yards : 100 - yards;
+        if (showDownBanner){
+          if (playMode === "fg_user" || playMode === "fg_opp"){
+            downBannerEl.textContent = "FIELD GOAL";
+          } else {
+            downBannerEl.textContent = `${ordinal} and ${andText} on the ${shownLine} yard line`;
+          }
+        }
+        setPlayerPosition();
+        userScoreEl.textContent = String(userScore);
+        oppScoreEl.textContent = String(oppScore);
+        const canKickFg = canAttemptFieldGoal();
+        const canAct = !paused && !gameOver && playMode === "normal";
+        puntBtn.style.display = (possession === "user" && down === 4 && canAct) ? "inline-flex" : "none";
+        fgBtn.style.display = (possession === "user" && down === 4 && canAct && canKickFg) ? "inline-flex" : "none";
+        goBtn.style.display = (possession === "user" && down === 4 && canAct && !goForItActive) ? "inline-flex" : "none";
+        const isOffense = possession === "user";
+        possessionBadgeEl.textContent = isOffense ? "Offense" : "Defense";
+        possessionBadgeEl.classList.toggle("offense", isOffense);
+        possessionBadgeEl.classList.toggle("defense", !isOffense);
+      }
+
+      function buildYardLines(){
+        // Lines every 10 yards (excluding end zones visual), labels go 0-50-0
+        for (let y=10; y<=90; y+=10){
+          const line = document.createElement("div");
+          line.className = "yardLine";
+          // map 0..100 to 12%..88%
+          const pct = 12 + (y / 100) * 76;
+          line.style.left = pct + "%";
+          fieldEl.appendChild(line);
+
+          const label = document.createElement("div");
+          label.className = "yardLabel";
+          const shown = y <= 50 ? y : 100 - y;
+          label.textContent = shown;
+          label.style.left = pct + "%";
+          fieldEl.appendChild(label);
+        }
+      }
+
+      function newProblem(){
+        if (paused || gameOver) return;
+        if (playMode === "normal" && possession === "user" && down === 4){
+          showFourthDownChoice();
+          return;
+        }
+        if (playMode === "normal" && possession === "opp" && down === 4){
+          if (distanceToGoal() >= 50){
+            handlePunt("opp");
+          } else {
+            startFieldGoalAttempt("opp");
+          }
+          return;
+        }
+
+        const isDefense = playMode === "fg_opp" || (playMode === "normal" && possession === "opp");
+        if (isDefense){
+          const max = maxFactorByLevel();
+          const divisor = randInt(1, Math.max(1, max));
+          const quotient = randInt(0, max);
+          A = divisor * quotient;
+          B = divisor;
+          currentOp = "div";
+          opEl.textContent = "÷";
+        } else {
+          const max = maxFactorByLevel();
+          A = randInt(0, max);
+          B = randInt(0, max);
+          currentOp = "mul";
+          opEl.textContent = "×";
+        }
+
+        aEl.textContent = A;
+        bEl.textContent = B;
+
+        statusEl.textContent = "";
+        statusEl.className = "status";
+
+        answerEl.value = "";
+        answerEl.focus();
+        const tagText = playMode === "fg_user"
+          ? "FG!"
+          : playMode === "fg_opp"
+            ? "BLOCK!"
+            : (possession === "user" ? "Hike!" : "Defense!");
+        setTag(tagText);
+        startTimer(getPlayClockSeconds());
+      }
+
+      function stopTimer(){
+        if (timerId !== null){
+          clearInterval(timerId);
+          timerId = null;
+        }
+      }
+
+      function startTimer(seconds = 30){
+        stopTimer();
+        timeLeft = seconds;
+        timerEl.textContent = String(timeLeft);
+        timerId = setInterval(() => {
+          if (paused) return;
+          if (timeLeft <= 0){
+            timeLeft = 0;
+            timerEl.textContent = "0";
+            stopTimer();
+            return;
+          }
+          timeLeft -= 1;
+          timerEl.textContent = String(timeLeft);
+        }, 1000);
+      }
+
+      function gainByTime(){
+        const elapsed = Math.max(0, 30 - timeLeft);
+        if (elapsed < 10) return 10;
+        if (elapsed < 20) return 5;
+        if (elapsed < 30) return 3;
+        return 1;
+      }
+
+      function oppGainByTime(isCorrect){
+        if (!isCorrect) return 20;
+        const elapsed = Math.max(0, 30 - timeLeft);
+        if (elapsed < 5) return -5;
+        if (elapsed < 10) return 0;
+        if (elapsed < 20) return 4;
+        if (elapsed < 30) return 10;
+        return 15;
+      }
+
+      function distanceToGoal(){
+        return direction === 1 ? (100 - yards) : yards;
+      }
+
+      function isTouchdown(){
+        return direction === 1 ? (yards >= 100) : (yards <= 0);
+      }
+
+      function isSafety(){
+        return direction === 1 ? (yards <= 0) : (yards >= 100);
+      }
+
+      function ownFiveYardLine(dir){
+        return dir === 1 ? 5 : 95;
+      }
+
+      function clampYards(val){
+        return Math.max(0, Math.min(100, val));
+      }
+
+      function updateLineToGain(){
+        lineToGain = clampYards(yards + direction * 10);
+      }
+
+      function directionFor(team){
+        return team === "user" ? 1 : -1;
+      }
+
+      function showFinalOverlay(){
+        finalTitle.textContent = overtime ? "Overtime Final" : "Final";
+        finalScore.textContent = `You ${userScore} - ${oppScore} Opponent`;
+        finalSub.textContent = userScore === oppScore
+          ? "It's a tie."
+          : (userScore > oppScore ? "You win!" : "Opponent wins.");
+        finalOverlay.classList.add("show");
+        finalOverlay.setAttribute("aria-hidden", "false");
+      }
+
+      function startOvertime(){
+        overtime = true;
+        quarter = 4;
+        driveTitle.textContent = "Overtime!";
+        driveSub.textContent = "Sudden death — first to score wins.";
+        showDownBanner = true;
+        updateHUD();
+        sayGood("Overtime! First to score wins.");
+      }
+
+      function endGame(){
+        stopTimer();
+        paused = true;
+        gameOver = true;
+        driveTitle.textContent = "Game Over";
+        driveSub.textContent = overtime ? "Overtime complete." : "12 possessions complete.";
+        downBannerEl.textContent = "FINAL";
+        showDownBanner = false;
+        updateHUD();
+        sayGood(userScore >= oppScore ? "Final whistle! You win!" : "Final whistle! Opponent wins!");
+        showFinalOverlay();
+      }
+
+      function maybeEndOvertime(){
+        if (!overtime || gameOver) return;
+        if (userScore !== oppScore){
+          endGame();
+        }
+      }
+
+      function canAttemptFieldGoal(){
+        const dist = distanceToGoal();
+        return dist > 0 && dist <= 50;
+      }
+
+      function fgWindowSeconds(dist, isDefense){
+        if (dist <= 20) return isDefense ? 5 : 30;
+        if (dist <= 30) return isDefense ? 10 : 20;
+        if (dist <= 40) return isDefense ? 20 : 10;
+        if (dist <= 50) return isDefense ? 30 : 5;
+        return null;
+      }
+
+      function getPlayClockSeconds(){
+        if (playMode === "fg_user"){
+          const s = fgWindowSeconds(distanceToGoal(), false);
+          return s === null ? 30 : s;
+        }
+        if (playMode === "fg_opp"){
+          const s = fgWindowSeconds(distanceToGoal(), true);
+          return s === null ? 30 : s;
+        }
+        return 30;
+      }
+
+      function startFieldGoalAttempt(team){
+        if (paused || gameOver) return;
+        const dist = distanceToGoal();
+        const isDefense = team === "opp";
+        const window = fgWindowSeconds(dist, isDefense);
+        if (window === null){
+          sayBad("Too far for a field goal.");
+          return;
+        }
+        playMode = team === "user" ? "fg_user" : "fg_opp";
+        driveTitle.textContent = team === "user" ? "Field Goal Attempt" : "Defend the Field Goal!";
+        driveSub.textContent = team === "user"
+          ? `Answer in ${window} seconds to make it for 3 points.`
+          : `Answer in ${window} seconds to block it.`;
+        showDownBanner = true;
+        updateHUD();
+        newProblem();
+      }
+
+      function handleFieldGoalResult(isUserKicking, isMade){
+        stopTimer();
+        paused = true;
+        playMode = "normal";
+        driveSub.textContent = "Possession changes.";
+        if (isMade){
+          if (isUserKicking) userScore += 3;
+          else oppScore += 3;
+          driveTitle.textContent = isUserKicking ? "FIELD GOAL! +3" : "OPPONENT FIELD GOAL";
+        sayGood(isUserKicking ? "Good! +3 points." : "Opponent scores 3.");
+        setTag("FG GOOD!");
+        showCelebration(fgCelebrationEl, 1800);
+        updateHUD();
+        maybeEndOvertime();
+        setTimeout(() => {
+          if (gameOver) return;
+          const nextTeam = isUserKicking ? "opp" : "user";
+          const nextSpot = isUserKicking ? 75 : 25;
+          const switched = switchPossession(nextTeam, nextSpot);
+          if (switched){
+            paused = false;
+            newProblem();
+          }
+        }, 1200);
+          return;
+        }
+        driveTitle.textContent = isUserKicking ? "FIELD GOAL MISSED" : "FIELD GOAL BLOCKED!";
+        sayBad(isUserKicking ? "No good. Turnover." : "Nice block! No points.");
+        setTag(isUserKicking ? "NO GOOD" : "BLOCK!");
+        updateHUD();
+        setTimeout(() => {
+          const switched = switchPossession(isUserKicking ? "opp" : "user", yards);
+          if (switched){
+            paused = false;
+            newProblem();
+          }
+        }, 1200);
+      }
+
+      function handlePunt(fromTeam){
+        stopTimer();
+        paused = true;
+        const kickDir = direction;
+        const nextTeam = fromTeam === "user" ? "opp" : "user";
+        const nextDir = directionFor(nextTeam);
+        let newSpot;
+        if (distanceToGoal() <= 50){
+          newSpot = ownFiveYardLine(nextDir);
+        } else {
+          newSpot = clampYards(yards + kickDir * 50);
+        }
+        driveTitle.textContent = "PUNT";
+        driveSub.textContent = "Possession changes.";
+        downBannerEl.textContent = "PUNT";
+        showDownBanner = false;
+        sayBad(fromTeam === "user" ? "You punted." : "Opponent punted.");
+        setTag("PUNT");
+        updateHUD();
+        setTimeout(() => {
+          const switched = switchPossession(nextTeam, newSpot);
+          if (switched){
+            paused = false;
+            newProblem();
+          }
+        }, 1200);
+      }
+
+      function handleTouchdown(team){
+        stopTimer();
+        paused = true;
+        const isUser = team === "user";
+        if (isUser) userScore += 7;
+        else oppScore += 7;
+        driveTitle.textContent = isUser ? "TOUCHDOWN!! 🏆" : "OPPONENT TD";
+        driveSub.textContent = "Ball changes possession.";
+        downBannerEl.textContent = "TOUCHDOWN!";
+        showDownBanner = false;
+        sayGood(isUser ? "TOUCHDOWN! 🎉 You scored 7." : "Opponent scored. Get the ball back!");
+        setTag("TD!!");
+        celebrate();
+        showCelebration(tdCelebrationEl, 2600);
+        updateHUD();
+        maybeEndOvertime();
+        setTimeout(() => {
+          if (gameOver) return;
+          const nextTeam = isUser ? "opp" : "user";
+          const nextSpot = isUser ? 75 : 25;
+          const switched = switchPossession(nextTeam, nextSpot);
+          if (switched){
+            paused = false;
+            newProblem();
+          }
+        }, 1200);
+      }
+
+      function handleSafety(){
+        stopTimer();
+        paused = true;
+        driveTitle.textContent = "SAFETY… 😅";
+        driveSub.textContent = "Ball changes possession.";
+        downBannerEl.textContent = "SAFETY";
+        showDownBanner = false;
+        sayBad("Safety! Opponent gets the ball.");
+        setTag("Safety!");
+        updateHUD();
+        setTimeout(() => {
+          const switched = switchPossession(possession === "user" ? "opp" : "user", yards);
+          if (switched){
+            paused = false;
+            newProblem();
+          }
+        }, 1200);
+      }
+
+      function handleTurnover(){
+        stopTimer();
+        paused = true;
+        driveTitle.textContent = "Turnover on Downs";
+        driveSub.textContent = "Possession changes.";
+        downBannerEl.textContent = "TURNOVER";
+        showDownBanner = false;
+        sayBad("Turnover on downs! Possession changes.");
+        setTag("Turnover!");
+        updateHUD();
+        setTimeout(() => {
+          const switched = switchPossession(possession === "user" ? "opp" : "user", yards);
+          if (switched){
+            paused = false;
+            newProblem();
+          }
+        }, 1200);
+      }
+
+      function shouldTurnoverOnDowns(){
+        return (down >= 4 && !goForItActive) || (down >= 5 && goForItActive);
+      }
+
+      function switchPossession(next, newYards){
+        if (!overtime && possessionCount >= 12){
+          if (userScore === oppScore){
+            startOvertime();
+          } else {
+            endGame();
+            return false;
+          }
+        }
+        possessionCount += 1;
+        quarter = Math.min(4, Math.floor((possessionCount - 1) / 3) + 1);
+        possession = next;
+        yards = clampYards(newYards);
+        direction = directionFor(next);
+        down = 1;
+        goForItActive = false;
+        playMode = "normal";
+        updateLineToGain();
+        driveTitle.textContent = next === "user" ? "Drive to the End Zone!" : "Play Defense!";
+        driveSub.textContent = next === "user" ? "Touchdown at the right end zone (100 yards)." : "Stop the opponent's drive.";
+        showDownBanner = true;
+        updateHUD();
+        return true;
+      }
+
+      function checkAnswer(){
+        if (paused || gameOver) return;
+
+        const raw = answerEl.value.trim();
+        if (!raw){
+          sayBad("Type your answer first 🙂");
+          return;
+        }
+        const user = Number(raw);
+        if (!Number.isFinite(user)){
+          sayBad("That doesn’t look like a number 🙂");
+          return;
+        }
+
+        const correctAns = currentOp === "div" ? (A / B) : (A * B);
+        const loss = Number(lossEl.value);
+        stopTimer();
+
+        if (playMode === "fg_user"){
+          const made = user === correctAns && timeLeft > 0;
+          if (user === correctAns){
+            correct += 1;
+            streak += 1;
+          } else {
+            streak = 0;
+          }
+          handleFieldGoalResult(true, made);
+          return;
+        }
+        if (playMode === "fg_opp"){
+          const blocked = user === correctAns && timeLeft > 0;
+          if (user === correctAns){
+            correct += 1;
+            streak += 1;
+          } else {
+            streak = 0;
+          }
+          handleFieldGoalResult(false, !blocked);
+          return;
+        }
+
+        if (possession === "user"){
+          const gain = gainByTime();
+          if (user === correctAns){
+            correct += 1;
+            streak += 1;
+            yards = clampYards(yards + direction * gain);
+            updateHUD();
+            popPlayer();
+            celebrate();
+            setTag("BIG GAIN!");
+            if (isTouchdown()){
+              handleTouchdown("user");
+              return;
+            }
+            if (direction === 1 ? (yards >= lineToGain) : (yards <= lineToGain)){
+              down = 1;
+              goForItActive = false;
+              updateLineToGain();
+              updateHUD();
+              sayGood(`FIRST DOWN! +${gain} yards. Keep driving!`);
+              setTimeout(newProblem, 700);
+              return;
+            }
+            if (shouldTurnoverOnDowns()){
+              updateHUD();
+              setTag("TURNOVER!");
+              sayBad("Turnover on downs. Short of the line to gain.");
+              handleTurnover();
+              return;
+            }
+            down += 1;
+            updateHUD();
+            sayGood(`Correct! +${gain} yards. Keep driving!`);
+            setTimeout(newProblem, 700);
+          } else {
+            streak = 0;
+            yards = clampYards(yards - direction * loss);
+            if (isSafety()){
+              updateHUD();
+              popPlayer();
+              setTag("SACK!");
+              sayBad(`SACK! The answer was ${correctAns}. -${loss} yards.`);
+              handleSafety();
+              return;
+            }
+            if (shouldTurnoverOnDowns()){
+              updateHUD();
+              popPlayer();
+              setTag("TURNOVER!");
+              sayBad(`Turnover on downs. The answer was ${correctAns}.`);
+              handleTurnover();
+              return;
+            }
+            down += 1;
+            updateHUD();
+            popPlayer();
+            setTag("SACK!");
+            sayBad(`SACK! The answer was ${correctAns}. -${loss} yards.`);
+            setTimeout(newProblem, 900);
+          }
+        } else {
+          const oppGain = oppGainByTime(user === correctAns);
+          if (user === correctAns){
+            correct += 1;
+            streak += 1;
+            if (oppGain < 0){
+              sayGood("SACK! Opponent -5 yards.");
+            } else {
+              sayGood(oppGain === 0 ? "Great stop! 0 yards." : `Stop! Opponent +${oppGain} yards.`);
+            }
+          } else {
+            streak = 0;
+            sayBad(`Missed it! Opponent +${oppGain} yards.`);
+          }
+          yards = clampYards(yards + direction * oppGain);
+          updateHUD();
+          popPlayer();
+          if (isTouchdown()){
+            handleTouchdown("opp");
+            return;
+          }
+          if (direction === 1 ? (yards >= lineToGain) : (yards <= lineToGain)){
+            down = 1;
+            goForItActive = false;
+            updateLineToGain();
+            updateHUD();
+            setTimeout(newProblem, 700);
+            return;
+          }
+          if (down >= 4){
+            updateHUD();
+            if (distanceToGoal() > 50){
+              handlePunt("opp");
+            } else {
+              startFieldGoalAttempt("opp");
+            }
+            return;
+          }
+          down += 1;
+          updateHUD();
+          setTimeout(newProblem, 800);
+        }
+      }
+
+      function resetGame(){
+        paused = false;
+        gameOver = false;
+        overtime = false;
+        yards = 25;
+        correct = 0;
+        streak = 0;
+        down = 1;
+        possession = "user";
+        direction = directionFor("user");
+        playMode = "normal";
+        goForItActive = false;
+        possessionCount = 1;
+        quarter = 1;
+        updateLineToGain();
+        userScore = 0;
+        oppScore = 0;
+        showDownBanner = true;
+        stopTimer();
+        timeLeft = 30;
+        driveTitle.textContent = "Drive to the End Zone!";
+        driveSub.textContent = "Touchdown at the right end zone (100 yards).";
+        finalOverlay.classList.remove("show");
+        finalOverlay.setAttribute("aria-hidden", "true");
+        updateHUD();
+        newProblem();
+      }
+
+      // Events
+      checkBtn.addEventListener("click", checkAnswer);
+      puntBtn.addEventListener("click", () => {
+        if (paused) return;
+        if (possession !== "user" || down !== 4) return;
+        handlePunt("user");
+      });
+      fgBtn.addEventListener("click", () => {
+        if (paused) return;
+        if (possession !== "user" || down !== 4) return;
+        startFieldGoalAttempt("user");
+      });
+      goBtn.addEventListener("click", () => {
+        if (paused) return;
+        if (possession !== "user" || down !== 4) return;
+        showFourthDownChoice();
+      });
+      resetBtn.addEventListener("click", resetGame);
+      playAgainBtn.addEventListener("click", resetGame);
+      answerEl.addEventListener("keydown", (e) => { if (e.key === "Enter") checkAnswer(); });
+      choiceGo.addEventListener("click", () => {
+        hideFourthDownChoice();
+        goForItActive = true;
+        down = 5;
+        paused = false;
+        updateHUD();
+        sayGood("Go for it! One extra play.");
+        newProblem();
+      });
+      choiceFg.addEventListener("click", () => {
+        hideFourthDownChoice();
+        paused = false;
+        startFieldGoalAttempt("user");
+      });
+      choicePunt.addEventListener("click", () => {
+        hideFourthDownChoice();
+        paused = false;
+        handlePunt("user");
+      });
+
+      levelEl.addEventListener("change", () => { streak = 0; updateHUD(); newProblem(); });
+      lossEl.addEventListener("change", () => { /* no-op */ });
+
+      buildYardLines();
+      updateHUD();
+      newProblem();
+    });
+  </script>
+</body>
+</html>
+
